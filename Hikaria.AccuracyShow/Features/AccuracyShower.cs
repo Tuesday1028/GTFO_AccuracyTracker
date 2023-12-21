@@ -8,6 +8,7 @@ using TheArchive.Core.Attributes;
 using TheArchive.Core.FeaturesAPI;
 using TheArchive.Loader;
 using UnityEngine;
+using static Il2CppSystem.Globalization.CultureInfo;
 
 namespace Hikaria.AccuracyShow.Features;
 
@@ -82,6 +83,42 @@ public class AccuracyShower : Feature
                 return;
             }
             OnSessionMemberChanged(player, SessionMemberEvent.LeftSessionHub);
+        }
+    }
+
+    [ArchivePatch(typeof(SNet_SessionHub), nameof(SNet_SessionHub.OnSessionMemberChange))]
+    private class SNet_SessionHub__OnSessionMemberChange__Patch
+    {
+        private static readonly List<SessionMemberChangeType> leftTypes = new()
+        {
+            SessionMemberChangeType.Kicked,
+            SessionMemberChangeType.Banned,
+            SessionMemberChangeType.Left,
+            SessionMemberChangeType.TimeOut
+        };
+
+        private static void Prefix(pSessionMemberStateChange data)
+        {
+            if (!data.player.TryGetPlayer(out var player) || SNet.IsMaster)
+            {
+                return;
+            }
+            if (leftTypes.Contains(data.type))
+            {
+                OnSessionMemberChanged(player, SessionMemberEvent.LeftSessionHub);
+            }
+        }
+
+        private static void Postfix(pSessionMemberStateChange data)
+        {
+            if (!data.player.TryGetPlayer(out var player) || SNet.IsMaster)
+            {
+                return;
+            }
+            if (data.type == SessionMemberChangeType.Joined)
+            {
+                OnSessionMemberChanged(player, SessionMemberEvent.JoinSessionHub);
+            }
         }
     }
 

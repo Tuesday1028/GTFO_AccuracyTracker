@@ -28,6 +28,7 @@ public static class AccuracyManager
 
     public static void OnSessionMemberChanged(SNet_Player player, SessionMemberEvent playerEvent)
     {
+        Logs.LogMessage($"{player.NickName} {playerEvent}");
         if (playerEvent == SessionMemberEvent.JoinSessionHub)
         {
             RegisterPlayer(player);
