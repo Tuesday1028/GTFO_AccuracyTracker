@@ -1,6 +1,7 @@
 ﻿using GTFO.API;
 using Hikaria.AccuracyShower.Handlers;
 using SNetwork;
+using System.Text.Json.Serialization.Metadata;
 using static Hikaria.AccuracyShower.Features.AccuracyShower;
 using static Hikaria.AccuracyShower.Handlers.AccuracyUpdater;
 
@@ -35,6 +36,11 @@ public static class AccuracyManager
         NetworkAPI.InvokeEvent(typeof(pAccuracyData).FullName, data.GetAccuracyData(), AccuracyDataListeners.Values.ToList(), SNet_ChannelType.GameNonCritical);
     }
 
+    public static void BroadcastAccuracyDataListener()
+    {
+        NetworkAPI.InvokeEvent(typeof(pBroadcastListenAccuracyData).FullName, new pBroadcastListenAccuracyData(), SNet_ChannelType.GameNonCritical);
+    }
+
     public static void OnSessionMemberChanged(SNet_Player player, SessionMemberEvent playerEvent)
     {
         if (playerEvent == SessionMemberEvent.JoinSessionHub)
@@ -44,7 +50,6 @@ public static class AccuracyManager
             {
                 AccuracyDataListeners.TryAdd(player.Lookup, player);
             }
-            NetworkAPI.InvokeEvent(typeof(pBroadcastListenAccuracyData).FullName, new pBroadcastListenAccuracyData(), SNet_ChannelType.GameNonCritical);
             AccuracyUpdater.RegisterPlayer(player);
         }
         else if (playerEvent == SessionMemberEvent.LeftSessionHub)

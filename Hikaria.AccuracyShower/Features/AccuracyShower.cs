@@ -70,6 +70,7 @@ public class AccuracyShower : Feature
 
     private static void OnPlayerEvent(SNet_Player player, SNet_PlayerEvent playerEvent, SNet_PlayerEventReason reason)
     {
+        AccuracyManager.BroadcastAccuracyDataListener();
         switch (playerEvent)
         {
             case SNet_PlayerEvent.PlayerLeftSessionHub:
