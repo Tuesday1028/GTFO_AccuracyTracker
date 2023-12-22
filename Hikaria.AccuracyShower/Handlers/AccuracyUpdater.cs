@@ -5,9 +5,9 @@ using SNetwork;
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using static Hikaria.AccuracyShow.Patches.AccuracyManager;
+using static Hikaria.AccuracyShower.Managers.AccuracyManager;
 
-namespace Hikaria.AccuracyShow.Handlers;
+namespace Hikaria.AccuracyShower.Handlers;
 
 public class AccuracyUpdater : MonoBehaviour
 {
@@ -48,7 +48,7 @@ public class AccuracyUpdater : MonoBehaviour
                             transform.gameObject.active = false;
                         }
                     }
-                    gameObject.transform.localPosition = new Vector3(-70f, -52 + -35 * (i + offset), 0f);
+                    gameObject.transform.localPosition = new Vector3(-70f, -62 + -35 * (i + offset), 0f);
                     AccuracyTextMeshes[i] = Instantiate(textMeshPro);
                     GameObject gameObject2 = new GameObject($"AccuracyShower{i}")
                     {
@@ -67,7 +67,37 @@ public class AccuracyUpdater : MonoBehaviour
         UpdateVisible();
     }
 
-    private static IEnumerator WaitingForCharacterSlotSetup(SNet_Player player)
+    public static void OnMasterChanged()
+    {
+        if (!SNet.IsMaster)
+        {
+            foreach (var lookup in AccuracyDataLookup.Keys.ToList())
+            {
+                if (!IsAccuracyListener(lookup) && AccuracyRegisteredCharacterIndex.TryGetValue(lookup, out var index))
+                {
+                    SetVisible(index, false);
+                }
+            }
+        }
+        else
+        {
+            foreach (var pair in AccuracyRegisteredCharacterIndex)
+            {
+                SetVisible(pair.Value, true);
+            }
+        }
+    }
+
+    public static void RegisterPlayer(SNet_Player player)
+    {
+        if (RegisterPlayerCoroutines.ContainsKey(player.Lookup))
+        {
+            Instance.StopCoroutine(RegisterPlayerCoroutines[player.Lookup]);
+        }
+        Instance.StartCoroutine(RegisterPlayerCoroutine(player));
+    }
+
+    private static IEnumerator RegisterPlayerCoroutine(SNet_Player player)
     {
         var yielder = new WaitForSecondsRealtime(1f);
         while (true)
@@ -75,11 +105,8 @@ public class AccuracyUpdater : MonoBehaviour
             if (player.HasCharacterSlot && player.CharacterIndex != -1)
             {
                 AccuracyRegisteredCharacterIndex[player.Lookup] = player.CharacterIndex;
-                AccuracyDataLookup.TryAdd(player.Lookup, new(player));
-                AccuracyDataNeedUpdate.TryAdd(player.Lookup, true);
-                MarkAccuracyDataNeedUpdate(player.Lookup);
-                SetVisible(player.CharacterIndex, true);
-                WaitForRegistCoroutine.Remove(player.Lookup);
+                AccuracyDataLookup[player.Lookup] = new(player);
+                AccuracyDataNeedUpdate[player.Lookup] = true;
                 yield break;
             }
             yield return yielder;
@@ -91,17 +118,28 @@ public class AccuracyUpdater : MonoBehaviour
         var yielder = new WaitForSecondsRealtime(3f);
         while (true)
         {
-            foreach (var data in AccuracyDataLookup.Values)
+            foreach (var data in AccuracyDataLookup.Values.ToList())
             {
-                var player = data.m_Owner;
-                if (AccuracyDataNeedUpdate[player.Lookup] && AccuracyRegisteredCharacterIndex.TryGetValue(player.Lookup, out var index))
+                var owner = data.m_Owner;
+                if (AccuracyDataNeedUpdate[owner.Lookup] && AccuracyRegisteredCharacterIndex.TryGetValue(owner.Lookup, out var index))
                 {
                     UpdateAccuracyData(index, data.GetAccuracyText());
-                    if (SNet.IsMaster && player.IsBot || player.IsLocal)
+                    AccuracyDataNeedUpdate[owner.Lookup] = false;
+                    if (SNet.IsMaster && (owner.IsBot || !IsAccuracyListener(owner.Lookup)) || owner.IsLocal)
                     {
                         SendAccuracyData(data);
                     }
-                    AccuracyDataNeedUpdate[player.Lookup] = false;
+                    if (IsAccuracyListener(owner.Lookup) || owner.IsLocal || (owner.IsBot && IsMasterHasAcc) || IsMasterHasAcc)
+                    {
+                        if (!AccuracyTextMeshesVisible[index])
+                        {
+                            SetVisible(index, true);
+                        }
+                    }
+                    else if (AccuracyTextMeshesVisible[index])
+                    {
+                        SetVisible(index, false);
+                    }
                 }
             }
             yield return yielder;
@@ -110,7 +148,7 @@ public class AccuracyUpdater : MonoBehaviour
 
     public void UpdateAccuracyData(pAccuracyData data)
     {
-        if (!data.m_player.TryGetPlayer(out var player) || !player.HasCharacterSlot)
+        if (!data.m_player.TryGetPlayer(out var player))
         {
             return;
         }
@@ -142,10 +180,6 @@ public class AccuracyUpdater : MonoBehaviour
             data.m_WeakspotHitted = 0;
             MarkAccuracyDataNeedUpdate(lookup);
         }
-        foreach (var lookup in AccuracyDataNeedUpdate.Keys.ToList())
-        {
-            AccuracyDataNeedUpdate[lookup] = false;
-        }
     }
 
     private static void SetVisible(int index, bool visible, bool update = true)
@@ -171,7 +205,7 @@ public class AccuracyUpdater : MonoBehaviour
             }
             if (AccuracyTextMeshesVisible[i])
             {
-                AccuracyTextMeshes[i].transform.parent.parent.transform.localPosition = new(-70f, -52f + -35f * (i + offset - preInvisible), 0f);
+                AccuracyTextMeshes[i].transform.parent.parent.transform.localPosition = new(-70f, -62f + -35f * (i + offset - preInvisible), 0f);
             }
             else
             {
@@ -180,35 +214,27 @@ public class AccuracyUpdater : MonoBehaviour
         }
     }
 
-    public static void RegisterPlayer(SNet_Player player)
-    {
-        if (!WaitForRegistCoroutine.ContainsKey(player.Lookup))
-        {
-            WaitForRegistCoroutine[player.Lookup] = Instance.StartCoroutine(WaitingForCharacterSlotSetup(player));
-        }
-    }
-
     public static void UnregisterAllPlayers()
     {
-        AccuracyDataLookup.Clear();
-        AccuracyDataNeedUpdate.Clear();
-        AccuracyRegisteredCharacterIndex.Clear();
-        for (int i = 0; i < 4; i++)
+        foreach (var lookup in AccuracyRegisteredCharacterIndex.Keys)
         {
-            AccuracyTextMeshesVisible[i] = false;
+            UnregisterPlayer(lookup);
         }
         UpdateVisible();
     }
 
-    public static void UnregisterPlayer(SNet_Player player)
+    public static void UnregisterPlayer(ulong lookup)
     {
-        SetVisible(AccuracyRegisteredCharacterIndex[player.Lookup], false);
-        AccuracyDataLookup.Remove(player.Lookup);
-        AccuracyDataNeedUpdate.Remove(player.Lookup);
-        AccuracyRegisteredCharacterIndex.Remove(player.Lookup);
+        if (AccuracyRegisteredCharacterIndex.ContainsKey(lookup))
+        {
+            SetVisible(AccuracyRegisteredCharacterIndex[lookup], false);
+        }
+        AccuracyDataLookup.Remove(lookup);
+        AccuracyDataNeedUpdate.Remove(lookup);
+        AccuracyRegisteredCharacterIndex.Remove(lookup);
     }
 
-    public static void AddHitted(ulong lookup, ulong count)
+    public static void AddHitted(ulong lookup, uint count)
     {
         if (AccuracyDataLookup.ContainsKey(lookup))
         {
@@ -216,7 +242,7 @@ public class AccuracyUpdater : MonoBehaviour
         }
     }
 
-    public static void AddShotted(ulong lookup, ulong count)
+    public static void AddShotted(ulong lookup, uint count)
     {
         if (AccuracyDataLookup.ContainsKey(lookup))
         {
@@ -224,7 +250,7 @@ public class AccuracyUpdater : MonoBehaviour
         }
     }
 
-    public static void AddWeakspotHitted(ulong lookup, ulong count)
+    public static void AddWeakspotHitted(ulong lookup, uint count)
     {
         if (AccuracyDataLookup.ContainsKey(lookup))
         {
@@ -248,7 +274,7 @@ public class AccuracyUpdater : MonoBehaviour
 
     private static Dictionary<ulong, int> AccuracyRegisteredCharacterIndex { get; set; } = new();
 
-    private static Dictionary<ulong, Coroutine> WaitForRegistCoroutine = new();
+    private static Dictionary<ulong, Coroutine> RegisterPlayerCoroutines = new();
 
     public class AccuracyData
     {
@@ -278,28 +304,28 @@ public class AccuracyUpdater : MonoBehaviour
             m_WeakspotHitted = data.m_WeakspotHitted;
         }
 
-        public void AddShotted(ulong count)
+        public void AddShotted(uint count)
         {
             m_Shotted += count;
         }
 
-        public void AddHitted(ulong count)
+        public void AddHitted(uint count)
         {
             m_Hitted += count;
         }
 
-        public void AddWeakspotHitted(ulong count)
+        public void AddWeakspotHitted(uint count)
         {
             m_WeakspotHitted += count;
         }
 
         public SNet_Player m_Owner;
 
-        public ulong m_Hitted;
+        public uint m_Hitted;
 
-        public ulong m_Shotted;
+        public uint m_Shotted;
 
-        public ulong m_WeakspotHitted;
+        public uint m_WeakspotHitted;
 
         public static readonly string[] ShowNames = { "Red", "Gre", "Blu", "Pur" };
 
@@ -309,13 +335,14 @@ public class AccuracyUpdater : MonoBehaviour
             {
                 return "-%(0/0)";
             }
+            string prefix = IsAccuracyListener(m_Owner.Lookup) || (IsMasterHasAcc && m_Owner.IsBot) || m_Owner.IsLocal ? "": "*";
             if (m_Shotted == 0)
             {
-                return $"{ShowNames[m_Owner.CharacterIndex]}: -%(0/0)";
+                return $"{prefix}{ShowNames[m_Owner.CharacterIndex]}: -%(0/0)";
             }
             else
             {
-                return $"{ShowNames[m_Owner.CharacterIndex]}: {(int)(100 * m_Hitted / m_Shotted)}%({m_Hitted}/{m_Shotted})";
+                return $"{prefix}{ShowNames[m_Owner.CharacterIndex]}: {(int)(100 * m_Hitted / m_Shotted)}%({m_Hitted}/{m_Shotted})";
             }
         }
 

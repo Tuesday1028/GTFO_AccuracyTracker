@@ -1,7 +1,7 @@
 ﻿using TheArchive.Interfaces;
 using TheArchive.Loader;
 
-namespace Hikaria.AccuracyShow;
+namespace Hikaria.AccuracyShower;
 
 internal static class Logs
 {

@@ -3,7 +3,7 @@ using BepInEx.Unity.IL2CPP;
 using TheArchive;
 using TheArchive.Core;
 
-namespace Hikaria.AccuracyShow;
+namespace Hikaria.AccuracyShower;
 
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(ArchiveMod.GUID, BepInDependency.DependencyFlags.HardDependency)]
