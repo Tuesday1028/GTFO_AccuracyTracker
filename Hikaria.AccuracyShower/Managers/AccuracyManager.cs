@@ -1,7 +1,6 @@
 ﻿using GTFO.API;
 using Hikaria.AccuracyShower.Handlers;
 using SNetwork;
-using System.Text.Json.Serialization.Metadata;
 using static Hikaria.AccuracyShower.Features.AccuracyShower;
 using static Hikaria.AccuracyShower.Handlers.AccuracyUpdater;
 
