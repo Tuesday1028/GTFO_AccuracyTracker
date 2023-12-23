@@ -1,8 +1,8 @@
 ﻿using Agents;
 using CellMenu;
 using Gear;
-using Hikaria.AccuracyShower.Handlers;
-using Hikaria.AccuracyShower.Managers;
+using Hikaria.AccuracyTracker.Handlers;
+using Hikaria.AccuracyTracker.Managers;
 using Player;
 using SNetwork;
 using TheArchive.Core.Attributes;
@@ -12,21 +12,21 @@ using TheArchive.Core.Models;
 using TheArchive.Loader;
 using UnityEngine;
 
-namespace Hikaria.AccuracyShower.Features;
+namespace Hikaria.AccuracyTracker.Features;
 
 [EnableFeatureByDefault]
 [DisallowInGameToggle]
-public class AccuracyShower : Feature
+public class AccuracyTracker : Feature
 {
-    public override string Name => "AccuracyShower";
+    public override string Name => "AccuracyTracker";
 
     public override string Group => FeatureGroups.Hud;
 
     #region FeatureSettings
     [FeatureConfig]
-    public static AccuracyShowerSettings Settings { get; set; }
+    public static AccuracyTrackerSettings Settings { get; set; }
 
-    public class AccuracyShowerSettings
+    public class AccuracyTrackerSettings
     {
         [FSDisplayName("启用")]
         public bool Enabled

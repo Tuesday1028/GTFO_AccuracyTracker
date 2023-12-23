@@ -1,15 +1,15 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
-using Hikaria.AccuracyShower.Extensions;
+using Hikaria.AccuracyTracker.Extensions;
 using Player;
 using SNetwork;
 using System.Collections;
 using TheArchive.Utilities;
 using TMPro;
 using UnityEngine;
-using static Hikaria.AccuracyShower.Features.AccuracyShower;
-using static Hikaria.AccuracyShower.Managers.AccuracyManager;
+using static Hikaria.AccuracyTracker.Features.AccuracyTracker;
+using static Hikaria.AccuracyTracker.Managers.AccuracyManager;
 
-namespace Hikaria.AccuracyShower.Handlers;
+namespace Hikaria.AccuracyTracker.Handlers;
 
 public class AccuracyUpdater : MonoBehaviour
 {

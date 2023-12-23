@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Hikaria.AccuracyShower.Extensions
+namespace Hikaria.AccuracyTracker.Extensions
 {
     internal static class StringExts
     {

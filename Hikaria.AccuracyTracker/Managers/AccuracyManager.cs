@@ -1,10 +1,9 @@
 ﻿using GTFO.API;
-using Hikaria.AccuracyShower.Handlers;
 using SNetwork;
-using static Hikaria.AccuracyShower.Features.AccuracyShower;
-using static Hikaria.AccuracyShower.Handlers.AccuracyUpdater;
+using static Hikaria.AccuracyTracker.Features.AccuracyTracker;
+using static Hikaria.AccuracyTracker.Handlers.AccuracyUpdater;
 
-namespace Hikaria.AccuracyShower.Managers;
+namespace Hikaria.AccuracyTracker.Managers;
 
 public static class AccuracyManager
 {
