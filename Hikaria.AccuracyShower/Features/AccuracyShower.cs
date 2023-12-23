@@ -1,26 +1,199 @@
-﻿using CellMenu;
+﻿using Agents;
+using CellMenu;
 using Gear;
 using Hikaria.AccuracyShower.Handlers;
 using Hikaria.AccuracyShower.Managers;
 using Player;
 using SNetwork;
 using TheArchive.Core.Attributes;
+using TheArchive.Core.Attributes.Feature.Settings;
 using TheArchive.Core.FeaturesAPI;
+using TheArchive.Core.Models;
 using TheArchive.Loader;
 using UnityEngine;
 
 namespace Hikaria.AccuracyShower.Features;
 
-[HideInModSettings]
 [EnableFeatureByDefault]
 [DisallowInGameToggle]
-[DoNotSaveToConfig]
 public class AccuracyShower : Feature
 {
     public override string Name => "AccuracyShower";
 
-    public override string Group => FeatureGroups.GetOrCreate("AccuracyShower");
+    public override string Group => FeatureGroups.Hud;
 
+    #region FeatureSettings
+    [FeatureConfig]
+    public static AccuracyShowerSettings Settings { get; set; }
+
+    public class AccuracyShowerSettings
+    {
+        [FSDisplayName("启用")]
+        public bool Enabled
+        {
+            get
+            {
+                return AccuracyUpdater.Enabled;
+            }
+            set
+            {
+                AccuracyUpdater.Enabled = value;
+            }
+        }
+
+        [FSDisplayName("显示其他玩家的命中率")]
+        public bool ShowOtherPlayersAcc
+        {
+            get
+            {
+                return AccuracyUpdater.ShowOtherPlayersAcc;
+            }
+            set
+            {
+                AccuracyUpdater.ShowOtherPlayersAcc = value;
+            }
+        }
+
+        [FSDisplayName("显示机器人玩家的命中率")]
+        public bool ShowBotsAcc
+        {
+            get
+            {
+                return AccuracyUpdater.ShowBotsAcc;
+            }
+            set
+            {
+                AccuracyUpdater.ShowBotsAcc = value;
+            }
+        }
+
+        [FSDisplayName("显示格式")]
+        [FSDescription("{0}: 玩家名称, {1}: 命中率, {2}: 弱点命中率, {3}: 弱点命中次数, {4}: 命中次数, {5}: 弹丸击发次数")]
+        public string ShowFormat
+        {
+            get
+            {
+                return AccuracyUpdater.ShowFormat;
+            }
+            set
+            {
+                AccuracyUpdater.ShowFormat = value;
+            }
+        }
+
+        [FSDisplayName("使用通用玩家名称")]
+        public bool UseGenericName
+        {
+            get
+            {
+                return AccuracyUpdater.UseGenericName;
+            }
+            set
+            {
+                AccuracyUpdater.UseGenericName = value;
+            }
+        }
+
+        [FSDisplayName("通用玩家名称设置")]
+        [FSReadOnly]
+        public List<PlayerNameEntry> CharacterNames
+        {
+            get
+            {
+                return AccuracyUpdater.CharacterNamesLookup.Values.ToList();
+            }
+            set
+            {
+            }
+        }
+
+        [FSDisplayName("显示位置设置")]
+        public PositionSettings Position { get; set; } = new();
+
+        [FSDisplayName("显示颜色设置")]
+        public ColorSettings FontColors { get; set; } = new();
+    }
+
+    public class PlayerNameEntry
+    {
+        public PlayerNameEntry(string character, string name)
+        {
+            Character = character;
+            Name = name;
+        }
+
+        [FSSeparator]
+        [FSDisplayName("人物")]
+        [FSReadOnly]
+        public string Character { get; set; }
+        [FSDisplayName("名称")]
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                if (AccuracyUpdater.IsSetup)
+                {
+                    AccuracyUpdater.MarkAllAccuracyDataNeedUpdate();
+                }
+                _name = value;
+            }
+        }
+
+        private string _name;
+    }
+
+    public class PositionSettings
+    {
+        [FSDisplayName("横向偏移量")]
+        [FSDescription("单位: 像素")]
+        public int OffsetX
+        {
+            get
+            {
+                return AccuracyUpdater.OffsetX;
+            }
+            set
+            {
+                AccuracyUpdater.OffsetX = value;
+            }
+        }
+
+        [FSDisplayName("纵向向偏移量")]
+        [FSDescription("单位: 像素")]
+        public int OffsetY
+        {
+            get
+            {
+                return AccuracyUpdater.OffsetY;
+            }
+            set
+            {
+                AccuracyUpdater.OffsetY = value;
+            }
+        }
+    }
+
+    public class ColorSettings
+    {
+        [FSDisplayName("命中率颜色")]
+        public SColor WeakspotHittedRatioColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("弱点命中率颜色")]
+        public SColor HittedRatioColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("弱点命中次数颜色")]
+        public SColor WeakspotHittedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("命中次数颜色")]
+        public SColor HittedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("弹丸击发次数颜色")]
+        public SColor ShottedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+    }
+
+    #endregion
+
+    #region FeatureMethods
     public override void OnGameStateChanged(int state)
     {
         if (state == (int)eGameStateName.Lobby)
@@ -34,6 +207,7 @@ public class AccuracyShower : Feature
         LoaderWrapper.ClassInjector.RegisterTypeInIl2Cpp<AccuracyUpdater>();
         AccuracyManager.Setup();
     }
+    #endregion
 
     #region SetupAccuracyShower
     public static bool IsSetup { get; private set; }
@@ -46,7 +220,7 @@ public class AccuracyShower : Feature
             if (!IsSetup)
             {
                 GameObject gameObject = new("AccuracyShower");
-                GameObject.DontDestroyOnLoad(gameObject);
+                UnityEngine.Object.DontDestroyOnLoad(gameObject);
                 if (gameObject.GetComponent<AccuracyUpdater>() == null)
                 {
                     gameObject.AddComponent<AccuracyUpdater>();
@@ -85,7 +259,7 @@ public class AccuracyShower : Feature
 
     private static void OnMasterChanged()
     {
-        AccuracyUpdater.OnMasterChanged();
+        AccuracyUpdater.CheckAndSetVisible();
     }
 
     public enum SessionMemberEvent
@@ -95,7 +269,7 @@ public class AccuracyShower : Feature
     }
     #endregion
 
-    #region FetchWeaponFire
+    #region FetchSentryFire
 
     // 只有主机才需要获取炮台是否开火
     public static bool IsSentryGunFire { get; private set; }
@@ -127,6 +301,10 @@ public class AccuracyShower : Feature
             IsSentryGunFire = false;
         }
     }
+
+    #endregion
+
+    #region FetchOtherPlayersFire
     private static Dictionary<ulong, InventorySlot> LastWieldValidSlot { get; set; } = new();
 
     [ArchivePatch(typeof(PlayerSync), nameof(PlayerSync.SyncInventoryStatus))]
@@ -242,7 +420,9 @@ public class AccuracyShower : Feature
             }
         }
     }
+    #endregion
 
+    #region FetchBotsFireWhenHost
     private static bool IsWeaponOwner(BulletWeapon weapon)
     {
         if (weapon == null || weapon.Owner == null || weapon.Owner.Owner == null)
@@ -342,6 +522,9 @@ public class AccuracyShower : Feature
             AccuracyUpdater.MarkAccuracyDataNeedUpdate(player.Lookup);
         }
     }
+    #endregion
+
+    #region FetchLocalFire
 
     [ArchivePatch(typeof(BulletWeapon), nameof(BulletWeapon.Fire))]
     private class BulletWeapon__Fire__Patch
@@ -422,6 +605,26 @@ public class AccuracyShower : Feature
         }
     }
 
+    [ArchivePatch(typeof(Dam_EnemyDamageLimb), nameof(Dam_EnemyDamageLimb.BulletDamage))]
+    private class Dam_EnemyDamageLimb__BulletDamage__Patch
+    {
+        private static void Postfix(Dam_EnemyDamageLimb __instance, Agent sourceAgent)
+        {
+            if (!CanCalc || sourceAgent == null)
+            {
+                return;
+            }
+            var playerAgent = sourceAgent.TryCast<PlayerAgent>();
+            if (playerAgent != null && __instance.m_type == eLimbDamageType.Weakspot)
+            {
+                AccuracyUpdater.AddWeakspotHitted(playerAgent.Owner.Lookup, 1);
+            }
+        }
+    }
+
+    #endregion
+
+    #region HandleFire
     [ArchivePatch(typeof(BulletWeapon), nameof(BulletWeapon.BulletHit))]
     private class BulletWeapon__BulletHit__Patch
     {

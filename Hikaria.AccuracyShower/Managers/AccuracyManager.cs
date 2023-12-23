@@ -8,21 +8,22 @@ namespace Hikaria.AccuracyShower.Managers;
 
 public static class AccuracyManager
 {
-    public static void Setup()
+    internal static void Setup()
     {
         NetworkAPI.RegisterEvent<pAccuracyData>(typeof(pAccuracyData).FullName, ReceiveAccuracyData);
         NetworkAPI.RegisterEvent<pBroadcastListenAccuracyData>(typeof(pBroadcastListenAccuracyData).FullName, ReceiveBroadcastListenAccuracyData);
     }
 
-    public static void ReceiveBroadcastListenAccuracyData(ulong senderID, pBroadcastListenAccuracyData data)
+    private static void ReceiveBroadcastListenAccuracyData(ulong senderID, pBroadcastListenAccuracyData data)
     {
         if (SNet.Core.TryGetPlayer(senderID, out var player, true))
         {
             AccuracyDataListeners.TryAdd(player.Lookup, player);
+            MarkAllAccuracyDataNeedUpdate();
         }
     }
 
-    public static void ReceiveAccuracyData(ulong senderID, pAccuracyData data)
+    private static void ReceiveAccuracyData(ulong senderID, pAccuracyData data)
     {
         if (Instance != null && data.m_player.TryGetPlayer(out var player) && !player.IsLocal)
         {
@@ -30,17 +31,17 @@ public static class AccuracyManager
         }
     }
 
-    public static void SendAccuracyData(AccuracyData data)
+    internal static void SendAccuracyData(AccuracyData data)
     {
         NetworkAPI.InvokeEvent(typeof(pAccuracyData).FullName, data.GetAccuracyData(), AccuracyDataListeners.Values.ToList(), SNet_ChannelType.GameNonCritical);
     }
 
-    public static void BroadcastAccuracyDataListener()
+    internal static void BroadcastAccuracyDataListener()
     {
         NetworkAPI.InvokeEvent(typeof(pBroadcastListenAccuracyData).FullName, new pBroadcastListenAccuracyData(), SNet_ChannelType.GameNonCritical);
     }
 
-    public static void OnSessionMemberChanged(SNet_Player player, SessionMemberEvent playerEvent)
+    internal static void OnSessionMemberChanged(SNet_Player player, SessionMemberEvent playerEvent)
     {
         if (playerEvent == SessionMemberEvent.JoinSessionHub)
         {
@@ -49,7 +50,7 @@ public static class AccuracyManager
             {
                 AccuracyDataListeners.TryAdd(player.Lookup, player);
             }
-            AccuracyUpdater.RegisterPlayer(player);
+            RegisterPlayer(player);
         }
         else if (playerEvent == SessionMemberEvent.LeftSessionHub)
         {
@@ -57,12 +58,12 @@ public static class AccuracyManager
             if (player.IsLocal)
             {
                 AccuracyDataListeners.Clear();
-                AccuracyUpdater.UnregisterAllPlayers();
+                UnregisterAllPlayers();
             }
             else
             {
                 AccuracyDataListeners.Remove(player.Lookup);
-                AccuracyUpdater.UnregisterPlayer(player.Lookup);
+                UnregisterPlayer(player.Lookup);
             }
 
         }
@@ -82,9 +83,9 @@ public static class AccuracyManager
 
     private static Dictionary<ulong, SNet_Player> AccuracyDataListeners { get; set; } = new();
 
-    public static Dictionary<ulong, SNet_Player> LobbyPlayers { get; private set; } = new();
+    private static Dictionary<ulong, SNet_Player> LobbyPlayers { get; set; } = new();
 
-    public struct pBroadcastListenAccuracyData
+    private struct pBroadcastListenAccuracyData
     {
     }
 
