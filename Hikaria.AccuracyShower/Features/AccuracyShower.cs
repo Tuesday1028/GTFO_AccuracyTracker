@@ -82,6 +82,7 @@ public class AccuracyShower : Feature
         }
 
         [FSDisplayName("使用通用玩家名称")]
+        [FSDescription("若此项为 False, 则使用玩家名称")]
         public bool UseGenericName
         {
             get
