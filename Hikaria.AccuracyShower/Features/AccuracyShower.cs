@@ -181,13 +181,13 @@ public class AccuracyShower : Feature
     public class ColorSettings
     {
         [FSDisplayName("命中率颜色")]
-        public SColor WeakspotHittedRatioColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
-        [FSDisplayName("弱点命中率颜色")]
         public SColor HittedRatioColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
-        [FSDisplayName("弱点命中次数颜色")]
-        public SColor WeakspotHittedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
         [FSDisplayName("命中次数颜色")]
         public SColor HittedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("弱点命中率颜色")]
+        public SColor WeakspotHittedRatioColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
+        [FSDisplayName("弱点命中次数颜色")]
+        public SColor WeakspotHittedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
         [FSDisplayName("弹丸击发次数颜色")]
         public SColor ShottedColor { get; set; } = new(0.7206f, 0.7206f, 0.7206f, 0.3137f);
     }
