@@ -10,9 +10,9 @@
 
 ## 插件设置
 
-本插件基于 TheArchive，可在 "Settings-->Mod Settings->HUD/UI-->AccuracyShower" 中对本插件进行个性化设置
+本插件基于 TheArchive，可在 "Settings-->Mod Settings->HUD/UI-->AccuracyTracker" 中对本插件进行个性化设置
 
-![设置展示](https://raw.githubusercontent.com/Tuesday1028/GTFO_AccuracyShower/main/images/AccurayShowerSettings.png)
+![设置展示](https://raw.githubusercontent.com/Tuesday1028/GTFO_AccuracyShower/main/images/AccurayTrackerSettings.png)
 
 ## 前置插件
 
