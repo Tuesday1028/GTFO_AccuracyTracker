@@ -51,7 +51,7 @@ public class AccuracyUpdater : MonoBehaviour
                     }
                     gameObject.transform.localPosition = new Vector3(-70f + OffsetX, -62 + OffsetY + -35 * i, 0f);
                     AccuracyTextMeshes[i] = Instantiate(textMeshPro);
-                    GameObject gameObject2 = new GameObject($"AccuracyShower{i}")
+                    GameObject gameObject2 = new GameObject($"AccuracyTracker{i}")
                     {
                         layer = 5,
                         hideFlags = HideFlags.HideAndDontSave
