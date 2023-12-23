@@ -513,7 +513,7 @@ public class AccuracyUpdater : MonoBehaviour
             {
                 return string.Format(Settings.ShowFormat, "-", "-", "-", 0, 0, 0);
             }
-            string prefix = NeedShowAccuracy(m_Owner) ? "": "*";
+            string prefix = IsAccuracyListener(m_Owner.Lookup) || (IsMasterHasAcc && m_Owner.IsBot) || m_Owner.IsLocal ? "": "*";
             string playerName = UseGenericName ? Settings.CharacterNames[m_Owner.CharacterIndex].Name : m_Owner.NickName.RemoveHtmlTags();
             if (m_Shotted == 0)
             {
