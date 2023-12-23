@@ -12,7 +12,7 @@
 
 本插件基于 TheArchive，可在 "Settings-->Mod Settings->HUD/UI-->AccuracyTracker" 中对本插件进行个性化设置
 
-![设置展示](https://raw.githubusercontent.com/Tuesday1028/GTFO_AccuracyTracker/main/images/AccurayTrackerSettings.png)
+![设置展示](https://raw.githubusercontent.com/Tuesday1028/GTFO_AccuracyTracker/main/images/AccuracyTrackerSettings.png)
 
 ## 前置插件
 
