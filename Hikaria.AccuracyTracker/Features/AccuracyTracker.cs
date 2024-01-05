@@ -18,7 +18,7 @@ namespace Hikaria.AccuracyTracker.Features;
 [DisallowInGameToggle]
 public class AccuracyTracker : Feature
 {
-    public override string Name => "AccuracyTracker";
+    public override string Name => "命中率显示";
 
     public override string Group => FeatureGroups.Hud;
 
@@ -29,88 +29,34 @@ public class AccuracyTracker : Feature
     public class AccuracyTrackerSettings
     {
         [FSDisplayName("启用")]
-        public bool Enabled
-        {
-            get
-            {
-                return AccuracyUpdater.Enabled;
-            }
-            set
-            {
-                AccuracyUpdater.Enabled = value;
-            }
-        }
+        public bool Enabled { get => AccuracyUpdater.Enabled; set => AccuracyUpdater.Enabled = value; }
 
         [FSDisplayName("显示其他玩家的命中率")]
-        public bool ShowOtherPlayersAcc
-        {
-            get
-            {
-                return AccuracyUpdater.ShowOtherPlayersAcc;
-            }
-            set
-            {
-                AccuracyUpdater.ShowOtherPlayersAcc = value;
-            }
-        }
+        public bool ShowOtherPlayersAcc { get => AccuracyUpdater.ShowOtherPlayersAcc; set => AccuracyUpdater.ShowOtherPlayersAcc = value; }
 
         [FSDisplayName("显示机器人玩家的命中率")]
-        public bool ShowBotsAcc
-        {
-            get
-            {
-                return AccuracyUpdater.ShowBotsAcc;
-            }
-            set
-            {
-                AccuracyUpdater.ShowBotsAcc = value;
-            }
-        }
+        public bool ShowBotsAcc { get => AccuracyUpdater.ShowBotsAcc; set => AccuracyUpdater.ShowBotsAcc = value; }
 
         [FSDisplayName("显示格式")]
         [FSDescription("{0}: 玩家名称, {1}: 命中率, {2}: 弱点命中率, {3}: 弱点命中次数, {4}: 命中次数, {5}: 弹丸击发次数")]
-        public string ShowFormat
-        {
-            get
-            {
-                return AccuracyUpdater.ShowFormat;
-            }
-            set
-            {
-                AccuracyUpdater.ShowFormat = value;
-            }
-        }
+        public string ShowFormat { get => AccuracyUpdater.ShowFormat; set => AccuracyUpdater.ShowFormat = value; }
 
+        [FSHeader("玩家显示名称设置")]
         [FSDisplayName("使用通用玩家名称")]
         [FSDescription("若此项为 False, 则使用玩家名称")]
-        public bool UseGenericName
-        {
-            get
-            {
-                return AccuracyUpdater.UseGenericName;
-            }
-            set
-            {
-                AccuracyUpdater.UseGenericName = value;
-            }
-        }
+        public bool UseGenericName { get => AccuracyUpdater.UseGenericName; set => AccuracyUpdater.UseGenericName = value; }
 
         [FSDisplayName("通用玩家名称设置")]
         [FSReadOnly]
-        public List<PlayerNameEntry> CharacterNames
-        {
-            get
-            {
-                return AccuracyUpdater.CharacterNamesLookup.Values.ToList();
-            }
-            set
-            {
-            }
-        }
+        public List<PlayerNameEntry> CharacterNames { get => AccuracyUpdater.CharacterNamesLookup.Values.ToList(); set { } }
 
+        [FSInline]
+        [FSHeader("显示位置设置")]
         [FSDisplayName("显示位置设置")]
         public PositionSettings Position { get; set; } = new();
 
+        [FSInline]
+        [FSHeader("显示位置设置")]
         [FSDisplayName("显示颜色设置")]
         public ColorSettings FontColors { get; set; } = new();
     }
@@ -163,7 +109,7 @@ public class AccuracyTracker : Feature
             }
         }
 
-        [FSDisplayName("纵向向偏移量")]
+        [FSDisplayName("纵向偏移量")]
         [FSDescription("单位: 像素")]
         public int OffsetY
         {

@@ -221,11 +221,13 @@ public class AccuracyUpdater : MonoBehaviour
             }
             if (AccuracyTextMeshesVisible[i])
             {
+                AccuracyTextMeshes[i].transform.parent.parent.gameObject.SetActive(true);
                 AccuracyTextMeshes[i].transform.parent.parent.transform.localPosition = new(-70f + OffsetX, -62f + OffsetY + -35f * (i - preInvisible), 0f);
             }
             else
             {
-                AccuracyTextMeshes[i].transform.parent.parent.transform.localPosition = new(-70f, 1000f, 0f);
+                AccuracyTextMeshes[i].transform.parent.parent.gameObject.SetActive(false);
+                //AccuracyTextMeshes[i].transform.parent.parent.transform.localPosition = new(-70f, 1000f, 0f);
             }
         }
     }

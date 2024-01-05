@@ -2,6 +2,10 @@
 using BepInEx.Unity.IL2CPP;
 using TheArchive;
 using TheArchive.Core;
+using TheArchive.Core.Attributes;
+using TheArchive.Core.Localization;
+
+[assembly: ModDefaultFeatureGroupName("Accuracy Tracker")]
 
 namespace Hikaria.AccuracyTracker;
 
@@ -42,4 +46,11 @@ public class EntryPoint : BasePlugin, IArchiveModule
     public bool UsesLegacyPatches => false;
 
     public ArchiveLegacyPatcher Patcher { get; set; }
+
+    public string ModuleGroup => PluginInfo.NAME;
+
+    public Dictionary<Language, string> ModuleGroupLanguages => new()
+    {
+        { Language.Chinese, "命中率显示" }
+    };
 }

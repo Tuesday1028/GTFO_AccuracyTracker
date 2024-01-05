@@ -37,8 +37,10 @@ public static class AccuracyManager
 
     internal static void BroadcastAccuracyDataListener()
     {
-        NetworkAPI.InvokeEvent(typeof(pBroadcastListenAccuracyData).FullName, new pBroadcastListenAccuracyData(), SNet_ChannelType.GameNonCritical);
+        NetworkAPI.InvokeEvent(typeof(pBroadcastListenAccuracyData).FullName, broadcastData, SNet_ChannelType.GameNonCritical);
     }
+
+    private static pBroadcastListenAccuracyData broadcastData = new();
 
     internal static void OnSessionMemberChanged(SNet_Player player, SessionMemberEvent playerEvent)
     {
